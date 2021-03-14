@@ -39,7 +39,7 @@ const typeDefs = gql`
     credits: [PersonCredit]
     department: String
     name: String
-    profile_path: String
+    profile_pic_url(imgSize: ImgSize!): String
     birthday: String
     deathday: String
     place_of_birth: String
@@ -101,7 +101,7 @@ const resolvers = {
         case 'tv':
           return `https://image.tmdb.org/t/p/${imgSize}${result.poster_path}`
         case 'person':
-          return result.profile_path
+          return `https://image.tmdb.org/t/p/${imgSize}${result.profile_path}`
       }
     }
   },
@@ -151,6 +151,9 @@ const resolvers = {
         default:
           return null;
       }
+    },
+    profile_pic_url: (person, {imgSize}) => {
+      return `https://image.tmdb.org/t/p/${imgSize}${person.profile_path}`
     }
   },
   MovieCredit: {
