@@ -10,7 +10,7 @@ const typeDefs = gql`
     id: ID!
     name: String!
     release_date: String
-    poster_url: String
+    poster_url(imgSize: ImgSize!): String
     media_type: String!
   }
   type Movie {
@@ -21,8 +21,8 @@ const typeDefs = gql`
     genres: [Genere]
     release_date: String
     release_status: String
-    poster_url: String
-    backdrop_url: String
+    poster_url(imgSize: ImgSize!): String
+    backdrop_url(imgSize: ImgSize!): String
     rating: Float
     vote_count: Int
     language: String
@@ -61,6 +61,16 @@ const typeDefs = gql`
     MALE
     FEMALE
   }
+  enum ImgSize {
+    XXSM #w92
+    XSM #w154
+    SM #w185
+    M #w342
+    L #w500
+    XL #w780
+    XXL #1280
+    O #original
+  }
 `;
 
 const resolvers = {
@@ -85,11 +95,11 @@ const resolvers = {
           return result.name
       }
     },
-    poster_url: (result) => {
+    poster_url: (result, {imgSize}) => {
       switch (result.media_type) {
         case 'movie':
         case 'tv':
-          return result.poster_path
+          return `https://image.tmdb.org/t/p/${imgSize}${result.poster_path}`
         case 'person':
           return result.profile_path
       }
@@ -102,11 +112,11 @@ const resolvers = {
     release_status: (movie) => {
       return movie.status
     },
-    poster_url: (movie) => {
-      return "https://image.tmdb.org/t/p/w500" + movie.poster_path
+    poster_url: (movie, {imgSize}) => {
+      return `https://image.tmdb.org/t/p/${imgSize}${movie.poster_path}`
     },
-    backdrop_url: (movie) => {
-      return "https://image.tmdb.org/t/p/w500" + movie.backdrop_path
+    backdrop_url: (movie, {imgSize}) => {
+      return `https://image.tmdb.org/t/p/${imgSize}${movie.backdrop_path}`
     },
     rating: (movie) => {
       return movie.vote_average;
@@ -158,6 +168,16 @@ const resolvers = {
     role: (personCredit) => {
       return personCredit.character || personCredit.job
     }
+  },
+  ImgSize: {
+    XXSM: 'w92',
+    XSM: 'w154',
+    SM: 'w185',
+    M: 'w342',
+    L: 'w500',
+    XL: 'w780',
+    XXL: 'w1280',
+    O: 'original'
   }
 }
 
