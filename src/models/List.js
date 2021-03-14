@@ -9,6 +9,7 @@ export const typeDefs = gql`
     createList(title: String!): CreateListMutationResponse!
     deleteList(listId: ID!): DeleteListMutationResponse!
     addListItem(listId: ID!, title: String!, url: String!): AddListItemMutationResponse!
+    deleteListItem(listId: ID!, listItemId: ID!): DeleteListItemMutationResponse!
   }
   type List {
     id: ID
@@ -38,6 +39,12 @@ export const typeDefs = gql`
     success: Boolean!
     message: String!
   }
+  type DeleteListItemMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    list: List
+  }
 `;
 
 export const resolvers = {
@@ -52,7 +59,7 @@ export const resolvers = {
       const list = await List.findOne({title});
       if (list) {
         return {
-          code: "201",
+          code: "404",
           success: false,
           message: "duplicate list name",
         }
@@ -61,7 +68,7 @@ export const resolvers = {
         title
       });
       return {
-        code: "200",
+        code: "201",
         success: true,
         message: "new list created",
         list: newList
@@ -70,7 +77,7 @@ export const resolvers = {
     deleteList: async (_, {listId}) => {
       await List.findByIdAndDelete(listId);
       return {
-        code: "200",
+        code: "202",
         success: true,
         message: "list deleted successfully"
       }
@@ -85,12 +92,34 @@ export const resolvers = {
       }, {new: true});
       const newListItem = list.listItems[list.listItems.length - 1];
       return {
-        code: "200",
+        code: "201",
         success: true,
         message: "new listItem created",
         list: list,
         listItem: newListItem
       }
+    },
+    deleteListItem: async (_, {listId, listItemId}) => {
+      const list = await List.findByIdAndUpdate(listId, {
+        $pull: {
+          listItems: {
+            _id: listItemId
+          }
+        }
+      }, {new: true});
+      if (!list) {
+        return {
+          code: "404",
+          success: false,
+          message: "No list with the given listId"
+        }
+      }
+      return {
+        code: "202",
+        success: true,
+        message: "listitem delted successfully",
+        list
+      };
     }
   }
 }
