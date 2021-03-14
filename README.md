@@ -5,9 +5,9 @@ Pop Central is a pop culture hub where users can view, review and rate movies, m
 This is a graphQL API which acts a a middle layer between various REST services for data aggregation as well as a Mongo database for managing user information.
 
 ## TechStack
-Node.js
-Apollo Server
-MongoDB
+- Node.js
+- Apollo Server
+- MongoDB
 
 ## Instructions
 ```bash
@@ -20,72 +20,142 @@ MongoDB
 ## Schema
 
 ```graphQL
-  type Query {
-    _empty: String
-    search(query: String!): [SearchResult]
-    movie(movieId: ID!): Movie
-    person(personId: ID!): Person
-  }
+type Query {
+  _empty: String
+  search(query: String!): [SearchResult]
+  movie(movieId: ID!): Movie
+  person(personId: ID!): Person
+  lists: [List]
+}
 
-  type SearchResult {
-    id: ID!
-    name: String!
-    release_date: String
-    poster_url: String
-    media_type: String!
-  }
+type Mutation {
+  _empty: String
+  createList(title: String!): CreateListMutationResponse!
+  deleteList(listId: ID!): DeleteListMutationResponse!
+  addListItem(
+    listId: ID!
+    title: String!
+    url: String!
+  ): AddListItemMutationResponse!
+  deleteListItem(listId: ID!, listItemId: ID!): DeleteListItemMutationResponse!
+}
 
-  type Movie {
-    id: ID
-    title: String
-    tagline: String
-    overview: String
-    genres: [Genere]
-    release_date: String
-    release_status: String
-    poster_url: String
-    backdrop_url: String
-    rating: Float
-    vote_count: Int
-    language: String
-    budget: Int
-    revenue: Int
-    runtime: Int
-    website: String
-    credits: [MovieCredit]
-    directors: [Person]
-  }
+interface MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+}
 
-  type Person {
-    id: ID
-    gender: Gender
-    credits: [PersonCredit]
-    department: String
-    name: String
-    profile_path: String
-    birthday: String
-    deathday: String
-    place_of_birth: String
-    biography: String
-  }
+type SearchResult {
+  id: ID!
+  name: String!
+  release_date: String
+  poster_url(imgSize: ImgSize!): String
+  media_type: String!
+}
 
-  type Genere {
-    id: ID!
-    name: String!
-  }
+type Movie {
+  id: ID
+  title: String
+  tagline: String
+  overview: String
+  genres: [Genere]
+  release_date: String
+  release_status: String
+  poster_url(imgSize: ImgSize!): String
+  backdrop_url(imgSize: ImgSize!): String
+  rating: Float
+  vote_count: Int
+  language: String
+  budget: Int
+  revenue: Int
+  runtime: Int
+  website: String
+  credits: [MovieCredit]
+  directors: [Person]
+}
 
-  type MovieCredit {
-    person: Person
-    role: String
-  }
+type Person {
+  id: ID
+  gender: Gender
+  credits: [PersonCredit]
+  department: String
+  name: String
+  profile_pic_url(imgSize: ImgSize!): String
+  birthday: String
+  deathday: String
+  place_of_birth: String
+  biography: String
+}
 
-  type PersonCredit {
-    movie: Movie
-    role: String
-  }
+type Genere {
+  id: ID!
+  name: String!
+}
 
-  enum Gender {
-    MALE
-    FEMALE
-  }
+type MovieCredit {
+  person: Person
+  role: String
+}
+
+type PersonCredit {
+  movie: Movie
+  role: String
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum ImgSize {
+  XXSM
+  XSM
+  SM
+  M
+  L
+  XL
+  XXL
+  O
+}
+
+type List {
+  id: ID
+  title: String
+  listItems: [ListItem!]
+}
+
+type ListItem {
+  id: ID!
+  title: String!
+  url: String!
+}
+
+type CreateListMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  list: List
+}
+
+type AddListItemMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  list: List
+  listItem: ListItem
+}
+
+type DeleteListMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+}
+
+type DeleteListItemMutationResponse implements MutationResponse {
+  code: String!
+  success: Boolean!
+  message: String!
+  list: List
+}
 ```
