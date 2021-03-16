@@ -1,6 +1,7 @@
 import {gql, makeExecutableSchema} from 'apollo-server'
 import {typeDefs as Movie, resolvers as MovieResolvers} from './Movies';
 import {typeDefs as List, resolvers as ListResolvers} from './List';
+import {typeDefs as User, resolvers as UserResolvers} from './User';
 
 import {merge} from 'lodash'
 
@@ -28,8 +29,8 @@ const resolvers = {
 }
 
 const schema = makeExecutableSchema({
-  typeDefs: [Query, Movie, List],
-  resolvers: merge(resolvers, MovieResolvers, ListResolvers)
+  typeDefs: [Query, Movie, List, User],
+  resolvers: merge(resolvers, MovieResolvers, ListResolvers, UserResolvers),
 });
 
 export default schema;

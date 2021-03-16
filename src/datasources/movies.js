@@ -8,8 +8,8 @@ class MovieAPI extends RESTDataSource {
   }
 
   async searchByName(searchKeyword) {
-    const movies = await this.get(`search/multi?query=${encodeURIComponent(searchKeyword)}`);
-    return movies.results;
+    const searchResult = await this.get(`search/multi?query=${encodeURIComponent(searchKeyword)}`);
+    return searchResult.results;
   }
 
   async getMovieById(movieId) {

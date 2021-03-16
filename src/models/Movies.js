@@ -9,9 +9,9 @@ const typeDefs = gql`
   type SearchResult {
     id: ID!
     name: String!
-    release_date: String
-    poster_url(imgSize: ImgSize!): String
-    media_type: String!
+    releaseDate: String
+    image(imgSize: ImgSize!): String
+    mediaType: String!
   }
   type Movie {
     id: ID
@@ -19,12 +19,12 @@ const typeDefs = gql`
     tagline: String
     overview: String
     genres: [Genere]
-    release_date: String
-    release_status: String
-    poster_url(imgSize: ImgSize!): String
-    backdrop_url(imgSize: ImgSize!): String
+    releaseDate: String
+    releaseStatus: String
+    poster(imgSize: ImgSize!): String
+    backdropImage(imgSize: ImgSize!): String
     rating: Float
-    vote_count: Int
+    voteCount: Int
     language: String
     budget: Int
     revenue: Int
@@ -39,10 +39,10 @@ const typeDefs = gql`
     credits: [PersonCredit]
     department: String
     name: String
-    profile_pic_url(imgSize: ImgSize!): String
+    photo(imgSize: ImgSize!): String
     birthday: String
     deathday: String
-    place_of_birth: String
+    bornIn: String
     biography: String
   }
   type Genere {
@@ -95,7 +95,7 @@ const resolvers = {
           return result.name
       }
     },
-    poster_url: (result, {imgSize}) => {
+    image: (result, {imgSize}) => {
       switch (result.media_type) {
         case 'movie':
         case 'tv':
@@ -103,19 +103,25 @@ const resolvers = {
         case 'person':
           return `https://image.tmdb.org/t/p/${imgSize}${result.profile_path}`
       }
+    },
+    mediaType: (result) => {
+      return result.media_type;
+    },
+    releaseDate: (result) => {
+      return result.release_date
     }
   },
   Movie: {
     title: (movie) => {
       return movie.title || movie.name
     },
-    release_status: (movie) => {
+    releaseStatus: (movie) => {
       return movie.status
     },
-    poster_url: (movie, {imgSize}) => {
+    poster: (movie, {imgSize}) => {
       return `https://image.tmdb.org/t/p/${imgSize}${movie.poster_path}`
     },
-    backdrop_url: (movie, {imgSize}) => {
+    backdropImage: (movie, {imgSize}) => {
       return `https://image.tmdb.org/t/p/${imgSize}${movie.backdrop_path}`
     },
     rating: (movie) => {
@@ -152,7 +158,7 @@ const resolvers = {
           return null;
       }
     },
-    profile_pic_url: (person, {imgSize}) => {
+    photo: (person, {imgSize}) => {
       return `https://image.tmdb.org/t/p/${imgSize}${person.profile_path}`
     }
   },

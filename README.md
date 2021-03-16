@@ -49,7 +49,7 @@ interface MutationResponse {
 type SearchResult {
   id: ID!
   name: String!
-  release_date: String
+  releaseDate: String
   poster_url(imgSize: ImgSize!): String
   media_type: String!
 }
@@ -60,7 +60,7 @@ type Movie {
   tagline: String
   overview: String
   genres: [Genere]
-  release_date: String
+  releaseDate: String
   release_status: String
   poster_url(imgSize: ImgSize!): String
   backdrop_url(imgSize: ImgSize!): String
