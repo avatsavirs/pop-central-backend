@@ -1,4 +1,5 @@
 import {gql} from 'apollo-server'
+import {isAuthenticated} from '../auth';
 import List from '../database_models/List'
 
 export const typeDefs = gql`
@@ -49,10 +50,10 @@ export const typeDefs = gql`
 
 export const resolvers = {
   Query: {
-    lists: async () => {
+    lists: isAuthenticated(async () => {
       const allList = await List.find();
       return allList;
-    }
+    })
   },
   Mutation: {
     createList: async (_, {title}) => {

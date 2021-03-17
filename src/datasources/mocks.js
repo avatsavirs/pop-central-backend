@@ -1,6 +1,6 @@
 import {MockList} from 'apollo-server'
 
-export const mocks = {
+const mocks = {
   Query: () => ({
     search: () => new MockList([2, 5]),
     user: (_, {email}) => ({
@@ -24,4 +24,6 @@ export const mocks = {
     title: 'Castaway',
     url: '/movie/castaway'
   })
-}
+};
+
+export default mocks;

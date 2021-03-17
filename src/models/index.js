@@ -25,6 +25,9 @@ const resolvers = {
     _empty: () => {
       return "foo"
     },
+  },
+  MutationResponse: {
+    __resolveType: () => {}
   }
 }
 
