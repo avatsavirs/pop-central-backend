@@ -137,22 +137,6 @@ class MovieAPI extends RESTDataSource {
       return null;
     }
   }
-  async getArtistById(artistId) {
-    try {
-      return this.get(`artist/${artistId}`)
-    } catch (error) {
-      return null;
-    }
-  }
-
-  async getArtistCredits(artistId) {
-    try {
-      const result = await this.get(`artist/${artistId}/combined_credits`)
-      return [...result.cast, ...result.crew]
-    } catch (error) {
-      return null;
-    }
-  }
 
   willSendRequest(req) {
     req.params.set('api_key', config.api_key);

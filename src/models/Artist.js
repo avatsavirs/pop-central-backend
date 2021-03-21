@@ -35,7 +35,7 @@ export const typeDefs = gql`
 export const resolvers = {
   Query: {
     artist: async (_, {artistId}, {dataSources}) => {
-      return dataSources.movieAPI.getArtistById(artistId);
+      return dataSources.artistAPI.getArtistById(artistId);
     }
   },
   Artist: {
@@ -44,7 +44,7 @@ export const resolvers = {
     },
     credits: (artist, _, {dataSources}) => {
       if (artist.credits) return artist.credits;
-      return dataSources.movieAPI.getArtistCredits(artist.id);
+      return dataSources.artistAPI.getArtistCredits(artist.id);
     },
     gender: (artist) => {
       switch (artist.gender) {
@@ -58,6 +58,18 @@ export const resolvers = {
     },
     photo: (artist, {imgSize}) => {
       return `https://image.tmdb.org/t/p/${imgSize}${artist.profile_path}`
+    },
+    birthday: (artist, _, {dataSources}) => {
+      return dataSources.artistAPI.getBirthday(artist);
+    },
+    deathday: (artist, _, {dataSources}) => {
+      return dataSources.artistAPI.getDeathDay(artist);
+    },
+    bornIn: (artist, _, {dataSources}) => {
+      return dataSources.artistAPI.getBornIn(artist);
+    },
+    biography: (artist, _, {dataSources}) => {
+      return dataSources.artistAPI.getBio(artist);
     }
   },
   ArtistCredit: {
