@@ -26,7 +26,7 @@ class MovieAPI extends RESTDataSource {
     }
   }
 
-  async getMovieCredits(movieId) {
+  async getCredits(movieId) {
     try {
       const {cast, crew} = await this.get(`movie/${movieId}/credits`)
       return [...cast, ...crew];
@@ -36,9 +36,9 @@ class MovieAPI extends RESTDataSource {
     }
   }
 
-  async getMovieDirectors(movieId) {
+  async getDirectors(movie) {
     try {
-      const credits = await this.getMovieCredits(movieId);
+      const credits = await this.getCredits(movie.id);
       return credits.filter(crewMember => crewMember.job === "Director");
     } catch (error) {
       console.log(error);
@@ -46,7 +46,7 @@ class MovieAPI extends RESTDataSource {
     }
   }
 
-  async getMovieTagline(movie) {
+  async getTagline(movie) {
     try {
       movie = await this.getMovieById(movie.id);
       return movie.tagline;
@@ -56,6 +56,87 @@ class MovieAPI extends RESTDataSource {
     }
   }
 
+  async getGenres(movie) {
+    if (movie.genres) return movie.genres;
+    try {
+      const {genres} = await this.getMovieById(movie.id);
+      return genres.map(genre => genre.name);
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+  async getReleaseStatus(movie) {
+    if (movie.release_status) return movie.release_status;
+    try {
+      const {status} = await this.getMovieById(movie.id);
+      return status;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+  async getLanguages(movie) {
+    try {
+      const languages = movie.spoken_languages ?? (await this.getMovieById(movie.id)).spoken_languages;
+      return languages.map(lang => lang.english_name);
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+  async getBudget(movie) {
+    try {
+      const budget = movie.budget ?? (await this.getMovieById(movie.id)).budget;
+      return budget;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+  async getRevenue(movie) {
+    try {
+      const revenue = movie.revenue ?? (await this.getMovieById(movie.id)).revenue;
+      return revenue;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+  async getRunTime(movie) {
+    try {
+      const runtime = movie.runtime ?? (await this.getMovieById(movie.id)).runtime;
+      return runtime;
+    } catch (error) {
+      console.log(runtime);
+      return null;
+    }
+  }
+
+  async getWebsite(movie) {
+    try {
+      const website = movie.homepage ?? (await this.getMovieById(movie.id)).homepage;
+      return website;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+  async getProductionCompanies(movie) {
+    try {
+      const productionCompanies = movie.production_companies ?? (await this.getMovieById(movie.id)).production_companies;
+      return productionCompanies.map(pc => pc.name);
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
   async getArtistById(artistId) {
     try {
       return this.get(`artist/${artistId}`)

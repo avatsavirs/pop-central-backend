@@ -18,9 +18,9 @@ export const typeDefs = gql`
     backdropImage(imgSize: ImgSize!): String
     rating: Float
     voteCount: Int
-    language: String
-    budget: Int
-    revenue: Int
+    languages: [String]
+    budget: Float
+    revenue: Float
     runtime: Int
     website: String
     credits: [MovieCredit]
@@ -66,7 +66,7 @@ export const resolvers = {
     },
     tagline: async (movie, _, {dataSources}) => {
       if (movie.tagline) return movie.tagline;
-      const tagline = await dataSources.movieAPI.getMovieTagline(movie);
+      const tagline = await dataSources.movieAPI.getTagline(movie);
       return tagline;
     },
     releaseStatus: (movie) => {
@@ -81,17 +81,40 @@ export const resolvers = {
     rating: (movie) => {
       return movie.vote_average;
     },
-    language: (movie) => {
-      return movie.original_language
+    languages: (movie, _, {dataSources}) => {
+      return dataSources.movieAPI.getLanguages(movie);
     },
     website: (movie) => {
       return movie.homepage
     },
     credits: async (movie, _, {dataSources}) => {
-      return dataSources.movieAPI.getMovieCredits(movie.id);
+      return dataSources.movieAPI.getCredits(movie.id);
     },
     directors: async (movie, _, {dataSources}) => {
-      return dataSources.movieAPI.getMovieDirectors(movie.id);
+      return dataSources.movieAPI.getDirectors(movie);
+    },
+    genres: async (movie, _, {dataSources}) => {
+      return dataSources.movieAPI.getGenres(movie);
+    },
+    releaseDate: (movie) => movie.release_date,
+    releaseStatus: async (movie, _, {dataSources}) => {
+      return dataSources.movieAPI.getReleaseStatus(movie);
+    },
+    voteCount: (movie) => movie.vote_count,
+    budget: (movie, _, {dataSources}) => {
+      return dataSources.movieAPI.getBudget(movie);
+    },
+    revenue: (movie, _, {dataSources}) => {
+      return dataSources.movieAPI.getRevenue(movie);
+    },
+    runtime: (movie, _, {dataSources}) => {
+      return dataSources.movieAPI.getRunTime(movie);
+    },
+    website: (movie, _, {dataSources}) => {
+      return dataSources.movieAPI.getWebsite(movie);
+    },
+    productionCompanies: (movie, _, {dataSources}) => {
+      return dataSources.movieAPI.getProductionCompanies(movie);
     }
   },
   MovieCredit: {
