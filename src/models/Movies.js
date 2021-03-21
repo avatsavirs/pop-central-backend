@@ -1,24 +1,17 @@
 import {gql} from 'apollo-server';
 
-const typeDefs = gql`
+export const typeDefs = gql`
+
   extend type Query {
-    search(query: String!): [SearchResult]
     movie(movieId: ID!): Movie
-    person(personId: ID!): Person
   }
-  type SearchResult {
-    id: ID!
-    name: String!
-    releaseDate: String
-    image(imgSize: ImgSize!): String
-    mediaType: String!
-  }
+
   type Movie {
     id: ID
     title: String
     tagline: String
     overview: String
-    genres: [Genere]
+    genres: [String]
     releaseDate: String
     releaseStatus: String
     poster(imgSize: ImgSize!): String
@@ -31,89 +24,50 @@ const typeDefs = gql`
     runtime: Int
     website: String
     credits: [MovieCredit]
-    directors: [Person]
+    directors: [Artist]
+    productionCompanies: [String]
   }
-  type Person {
-    id: ID
-    gender: Gender
-    credits: [PersonCredit]
-    department: String
-    name: String
-    photo(imgSize: ImgSize!): String
-    birthday: String
-    deathday: String
-    bornIn: String
-    biography: String
-  }
-  type Genere {
-    id: ID!
-    name: String!
-  }
+
   type MovieCredit {
-    person: Person
+    artist: Artist
     role: String
   }
-  type PersonCredit {
-    movie: Movie
-    role: String
-  }
-  enum Gender {
-    MALE
-    FEMALE
-  }
+
   enum ImgSize {
-    XXSM #w92
-    XSM #w154
-    SM #w185
-    M #w342
-    L #w500
-    XL #w780
-    XXL #1280
-    O #original
+    "w92"
+    XXSM 
+    "w154"
+    XSM 
+    "w185"
+    SM 
+    "w342"
+    M 
+    "w500"
+    L 
+    "w780"
+    XL
+    "1280"
+    XXL
+    "original"
+    O 
   }
+
 `;
 
-const resolvers = {
+export const resolvers = {
   Query: {
-    search: async (_, {query}, {dataSources}) => {
-      return dataSources.movieAPI.searchByName(query);
-    },
     movie: async (_, {movieId}, {dataSources}) => {
       return dataSources.movieAPI.getMovieById(movieId);
     },
-    person: async (_, {personId}, {dataSources}) => {
-      return dataSources.movieAPI.getPersonById(personId);
-    }
-  },
-  SearchResult: {
-    name: (result) => {
-      switch (result.media_type) {
-        case 'movie':
-          return result.title
-        case 'tv':
-        case 'person':
-          return result.name
-      }
-    },
-    image: (result, {imgSize}) => {
-      switch (result.media_type) {
-        case 'movie':
-        case 'tv':
-          return `https://image.tmdb.org/t/p/${imgSize}${result.poster_path}`
-        case 'person':
-          return `https://image.tmdb.org/t/p/${imgSize}${result.profile_path}`
-      }
-    },
-    mediaType: (result) => {
-      return result.media_type;
-    },
-    releaseDate: (result) => {
-      return result.release_date
-    }
   },
   Movie: {
     title: (movie) => {
       return movie.title || movie.name
+    },
+    tagline: async (movie, _, {dataSources}) => {
+      if (movie.tagline) return movie.tagline;
+      const tagline = await dataSources.movieAPI.getMovieTagline(movie);
+      return tagline;
     },
     releaseStatus: (movie) => {
       return movie.status
@@ -140,42 +94,12 @@ const resolvers = {
       return dataSources.movieAPI.getMovieDirectors(movie.id);
     }
   },
-  Person: {
-    department: (person) => {
-      return person.known_for_department;
-    },
-    credits: (person, _, {dataSources}) => {
-      if (person.credits) return person.credits;
-      return dataSources.movieAPI.getPersonCredits(person.id);
-    },
-    gender: (person) => {
-      switch (person.gender) {
-        case 1:
-          return "FEMALE";
-        case 2:
-          return "MALE";
-        default:
-          return null;
-      }
-    },
-    photo: (person, {imgSize}) => {
-      return `https://image.tmdb.org/t/p/${imgSize}${person.profile_path}`
-    }
-  },
   MovieCredit: {
-    person: (movieCredit) => {
+    artist: (movieCredit) => {
       return movieCredit;
     },
     role: (movieCredit) => {
       return movieCredit.character || movieCredit.job
-    }
-  },
-  PersonCredit: {
-    movie: (personCredit) => {
-      return personCredit;
-    },
-    role: (personCredit) => {
-      return personCredit.character || personCredit.job
     }
   },
   ImgSize: {
@@ -189,8 +113,3 @@ const resolvers = {
     O: 'original'
   }
 }
-
-export {
-  typeDefs,
-  resolvers
-};

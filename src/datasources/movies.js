@@ -8,32 +8,69 @@ class MovieAPI extends RESTDataSource {
   }
 
   async searchByName(searchKeyword) {
-    const searchResult = await this.get(`search/multi?query=${encodeURIComponent(searchKeyword)}`);
-    return searchResult.results;
+    try {
+      const searchResult = await this.get(`search/multi?query=${encodeURIComponent(searchKeyword)}`);
+      return searchResult.results;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   }
 
   async getMovieById(movieId) {
-    return this.get(`movie/${movieId}`);
+    try {
+      return this.get(`movie/${movieId}`);
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
 
   async getMovieCredits(movieId) {
-    const {cast, crew} = await this.get(`movie/${movieId}/credits`)
-    return [...cast, ...crew];
+    try {
+      const {cast, crew} = await this.get(`movie/${movieId}/credits`)
+      return [...cast, ...crew];
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   }
 
   async getMovieDirectors(movieId) {
-    const credits = await this.getMovieCredits(movieId);
-    return credits.filter(crewMember => crewMember.job === "Director");
+    try {
+      const credits = await this.getMovieCredits(movieId);
+      return credits.filter(crewMember => crewMember.job === "Director");
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   }
 
-  async getPersonById(personId) {
-    return this.get(`person/${personId}`)
+  async getMovieTagline(movie) {
+    try {
+      movie = await this.getMovieById(movie.id);
+      return movie.tagline;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   }
 
-  async getPersonCredits(personId) {
-    const result = await this.get(`person/${personId}/combined_credits`)
-    console.log(result);
-    return [...result.cast, ...result.crew]
+  async getArtistById(artistId) {
+    try {
+      return this.get(`artist/${artistId}`)
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async getArtistCredits(artistId) {
+    try {
+      const result = await this.get(`artist/${artistId}/combined_credits`)
+      return [...result.cast, ...result.crew]
+    } catch (error) {
+      return null;
+    }
   }
 
   willSendRequest(req) {
