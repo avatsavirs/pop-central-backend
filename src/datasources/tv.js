@@ -113,6 +113,16 @@ class TvAPI extends RESTDataSource {
     }
   }
 
+  async getRelated(tv) {
+    try {
+      const relatedTv = await this.get(`${tv.id}/recommendations`);
+      return relatedTv.results;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
   willSendRequest(req) {
     req.params.set('api_key', config.api_key);
     req.params.set('language', 'en-US');

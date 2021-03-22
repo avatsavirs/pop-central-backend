@@ -10,7 +10,7 @@ export const typeDefs = gql`
 export const resolvers = {
   Query: {
     search: async (_, {query}, {dataSources}) => {
-      return dataSources.movieAPI.searchByName(query);
+      return dataSources.searchAPI.searchByName(query);
     }
   },
   SearchResult: {

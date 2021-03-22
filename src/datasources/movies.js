@@ -4,22 +4,12 @@ import config from '../config/index'
 class MovieAPI extends RESTDataSource {
   constructor() {
     super();
-    this.baseURL = "http://api.themoviedb.org/3/"
-  }
-
-  async searchByName(searchKeyword) {
-    try {
-      const searchResult = await this.get(`search/multi?query=${encodeURIComponent(searchKeyword)}`);
-      return searchResult.results;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    this.baseURL = "http://api.themoviedb.org/3/movie"
   }
 
   async getMovieById(movieId) {
     try {
-      return this.get(`movie/${movieId}`);
+      return this.get(`${movieId}`);
     } catch (e) {
       console.log(e);
       return null;
@@ -28,7 +18,7 @@ class MovieAPI extends RESTDataSource {
 
   async getCredits(movieId) {
     try {
-      const {cast, crew} = await this.get(`movie/${movieId}/credits`)
+      const {cast, crew} = await this.get(`${movieId}/credits`)
       return [...cast, ...crew];
     } catch (error) {
       console.log(error);
@@ -138,10 +128,21 @@ class MovieAPI extends RESTDataSource {
     }
   }
 
+  async getRelatedMovies(movie) {
+    try {
+      const relatedMovies = await this.get(`${movie.id}/recommendations`);
+      return relatedMovies.results;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
   willSendRequest(req) {
     req.params.set('api_key', config.api_key);
     req.params.set('language', 'en-US');
   }
+
 }
 
 export default MovieAPI;

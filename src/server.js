@@ -3,6 +3,7 @@ import schema from './models'
 import TvAPI from './datasources/tv';
 import MovieAPI from './datasources/movies';
 import ArtistAPI from './datasources/artist';
+import SearchAPI from './datasources/search';
 import mocks from './datasources/mocks';
 import {authContext} from './auth';
 
@@ -12,7 +13,8 @@ const server = new ApolloServer({
     return {
       movieAPI: new MovieAPI(),
       tvAPI: new TvAPI(),
-      artistAPI: new ArtistAPI()
+      artistAPI: new ArtistAPI(),
+      searchAPI: new SearchAPI()
     }
   },
   context: authContext

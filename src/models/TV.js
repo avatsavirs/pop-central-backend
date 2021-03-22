@@ -24,6 +24,7 @@ export const typeDefs = gql`
     tagline: String
     rating: Float
     voteCount: Int
+    related: [TV]
   }
 
   type Season {
@@ -92,6 +93,9 @@ export const resolvers = {
     },
     seasons: async (tv, _, {dataSources}) => {
       return (await dataSources.tvAPI.getSeasons(tv)).map(season => ({...season, tvId: tv.id}));
+    },
+    related: async (tv, _, {dataSources}) => {
+      return dataSources.tvAPI.getRelated(tv);
     }
   },
   Season: {

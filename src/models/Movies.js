@@ -26,6 +26,7 @@ export const typeDefs = gql`
     credits: [MovieCredit]
     directors: [Artist]
     productionCompanies: [String]
+    related: [Movie]
   }
 
   type MovieCredit {
@@ -115,6 +116,9 @@ export const resolvers = {
     },
     productionCompanies: (movie, _, {dataSources}) => {
       return dataSources.movieAPI.getProductionCompanies(movie);
+    },
+    related: (movie, _, {dataSources}) => {
+      return dataSources.movieAPI.getRelatedMovies(movie);
     }
   },
   MovieCredit: {
