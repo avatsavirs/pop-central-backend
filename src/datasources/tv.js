@@ -123,6 +123,15 @@ class TvAPI extends RESTDataSource {
     }
   }
 
+  async getPopular() {
+    try {
+      const popularTv = await this.get(`popular`);
+      return popularTv.results;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
   willSendRequest(req) {
     req.params.set('api_key', config.api_key);
     req.params.set('language', 'en-US');

@@ -4,6 +4,7 @@ export const typeDefs = gql`
 
   extend type Query {
     tv(tvId: ID!): TV
+    popularTv: [TV]
   }
 
   type TV {
@@ -48,6 +49,9 @@ export const resolvers = {
   Query: {
     tv: async (_, {tvId}, {dataSources}) => {
       return dataSources.tvAPI.getTvById(tvId);
+    },
+    popularTv: (_, __, {dataSources}) => {
+      return dataSources.tvAPI.getPopular();
     }
   },
   TV: {

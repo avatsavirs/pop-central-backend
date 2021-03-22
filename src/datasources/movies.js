@@ -138,6 +138,16 @@ class MovieAPI extends RESTDataSource {
     }
   }
 
+  async getPopular() {
+    try {
+      const popularMovie = await this.get(`popular`);
+      return popularMovie.results;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
   willSendRequest(req) {
     req.params.set('api_key', config.api_key);
     req.params.set('language', 'en-US');

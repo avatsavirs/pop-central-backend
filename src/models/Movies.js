@@ -4,6 +4,7 @@ export const typeDefs = gql`
 
   extend type Query {
     movie(movieId: ID!): Movie
+    popularMovie: [Movie]
   }
 
   type Movie {
@@ -60,6 +61,9 @@ export const resolvers = {
     movie: async (_, {movieId}, {dataSources}) => {
       return dataSources.movieAPI.getMovieById(movieId);
     },
+    popularMovie: (_, __, {dataSources}) => {
+      return dataSources.movieAPI.getPopular();
+    }
   },
   Movie: {
     title: (movie) => {
