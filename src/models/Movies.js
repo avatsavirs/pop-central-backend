@@ -1,10 +1,11 @@
 import {gql} from 'apollo-server';
+import {isAuthenticated} from '../auth';
 
 export const typeDefs = gql`
 
   extend type Query {
     movie(movieId: ID!): Movie
-    popularMovie: [Movie]
+    popularMovies: [Movie]
   }
 
   type Movie {
@@ -61,9 +62,9 @@ export const resolvers = {
     movie: async (_, {movieId}, {dataSources}) => {
       return dataSources.movieAPI.getMovieById(movieId);
     },
-    popularMovie: (_, __, {dataSources}) => {
+    popularMovies: isAuthenticated((_, __, {dataSources}) => {
       return dataSources.movieAPI.getPopular();
-    }
+    })
   },
   Movie: {
     title: (movie) => {
