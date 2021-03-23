@@ -62,9 +62,9 @@ export const resolvers = {
     movie: async (_, {movieId}, {dataSources}) => {
       return dataSources.movieAPI.getMovieById(movieId);
     },
-    popularMovies: isAuthenticated((_, __, {dataSources}) => {
+    popularMovies: (_, __, {dataSources}) => {
       return dataSources.movieAPI.getPopular();
-    })
+    }
   },
   Movie: {
     title: (movie) => {
