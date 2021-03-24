@@ -1,8 +1,7 @@
 import {AuthenticationError} from 'apollo-server';
 import jwt from 'jsonwebtoken';
 import config from './config'
-import Account from './database_models/Account';
-import {Types} from 'mongoose'
+import User from './database_models/User';
 
 
 async function getUserFromToken(token) {
@@ -11,7 +10,7 @@ async function getUserFromToken(token) {
   }
   const decodedToken = jwt.verify(token, config.jwtSecret, {algorithms: ['HS256']});
   const userId = decodedToken.sub;
-  const user = await Account.findOne({userId: Types.ObjectId(userId)});
+  const user = await User.findById(userId)
   return user;
 }
 
