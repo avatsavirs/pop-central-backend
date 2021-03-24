@@ -10,7 +10,7 @@ async function getUserFromToken(token) {
   }
   const decodedToken = jwt.verify(token, config.jwtSecret, {algorithms: ['HS256']});
   const userId = decodedToken.sub;
-  const user = await User.findById(userId)
+  const user = await User.findById(userId).lean()
   return user;
 }
 

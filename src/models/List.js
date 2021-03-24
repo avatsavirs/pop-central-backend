@@ -1,6 +1,7 @@
 import {gql} from 'apollo-server'
 import {isAuthenticated} from '../auth';
 import List from '../database_models/List'
+import User from '../database_models/User';
 
 export const typeDefs = gql`
   extend type Query {
@@ -16,6 +17,7 @@ export const typeDefs = gql`
     id: ID
     title: String
     listItems: [ListItem!]
+    user: User!
   }
   type ListItem {
     id: ID!
@@ -50,13 +52,13 @@ export const typeDefs = gql`
 
 export const resolvers = {
   Query: {
-    lists: isAuthenticated(async () => {
-      const allList = await List.find();
+    lists: isAuthenticated(async (_, __, {user}) => {
+      const allList = await List.find({userId: user._id}).populate("user");
       return allList;
     })
   },
   Mutation: {
-    createList: async (_, {title}) => {
+    createList: isAuthenticated(async (_, {title}, {user}) => {
       const list = await List.findOne({title});
       if (list) {
         return {
@@ -66,7 +68,8 @@ export const resolvers = {
         }
       }
       const newList = await List.create({
-        title
+        title,
+        userId: user
       });
       return {
         code: "201",
@@ -74,7 +77,7 @@ export const resolvers = {
         message: "new list created",
         list: newList
       };
-    },
+    }),
     deleteList: async (_, {listId}) => {
       await List.findByIdAndDelete(listId);
       return {
@@ -121,6 +124,12 @@ export const resolvers = {
         message: "listitem delted successfully",
         list
       };
+    }
+  },
+  List: {
+    user: async (list) => {
+      const user = await User.findById(list.userId).lean().exec();
+      return user;
     }
   }
 }
