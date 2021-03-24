@@ -19,13 +19,16 @@ This is a graphQL API which acts a a middle layer between various REST services 
 
 ## Schema
 
-```graphQL
 type Query {
   _empty: String
-  search(query: String!): [SearchResult]
   movie(movieId: ID!): Movie
-  person(personId: ID!): Person
+  popularMovies: [Movie]
   lists: [List]
+  me: User!
+  search(query: String!): [SearchResult]
+  tv(tvId: ID!): TV
+  popularTv: [TV]
+  artist(artistId: ID!): Artist
 }
 
 type Mutation {
@@ -36,6 +39,8 @@ type Mutation {
     listId: ID!
     title: String!
     url: String!
+    externalId: String!
+    category: String!
   ): AddListItemMutationResponse!
   deleteListItem(listId: ID!, listItemId: ID!): DeleteListItemMutationResponse!
 }
@@ -46,76 +51,57 @@ interface MutationResponse {
   message: String!
 }
 
-type SearchResult {
-  id: ID!
-  name: String!
-  releaseDate: String
-  poster_url(imgSize: ImgSize!): String
-  media_type: String!
-}
-
 type Movie {
   id: ID
   title: String
   tagline: String
   overview: String
-  genres: [Genere]
+  genres: [String]
   releaseDate: String
-  release_status: String
-  poster_url(imgSize: ImgSize!): String
-  backdrop_url(imgSize: ImgSize!): String
+  releaseStatus: String
+  poster(imgSize: ImgSize!): String
+  backdropImage(imgSize: ImgSize!): String
   rating: Float
-  vote_count: Int
-  language: String
-  budget: Int
-  revenue: Int
+  voteCount: Int
+  languages: [String]
+  budget: Float
+  revenue: Float
   runtime: Int
   website: String
   credits: [MovieCredit]
-  directors: [Person]
-}
-
-type Person {
-  id: ID
-  gender: Gender
-  credits: [PersonCredit]
-  department: String
-  name: String
-  profile_pic_url(imgSize: ImgSize!): String
-  birthday: String
-  deathday: String
-  place_of_birth: String
-  biography: String
-}
-
-type Genere {
-  id: ID!
-  name: String!
+  directors: [Artist]
+  productionCompanies: [String]
+  related: [Movie]
 }
 
 type MovieCredit {
-  person: Person
+  artist: Artist
   role: String
-}
-
-type PersonCredit {
-  movie: Movie
-  role: String
-}
-
-enum Gender {
-  MALE
-  FEMALE
 }
 
 enum ImgSize {
+  # w92
   XXSM
+
+  # w154
   XSM
+
+  # w185
   SM
+
+  # w342
   M
+
+  # w500
   L
+
+  # w780
   XL
+
+  # 1280
   XXL
+
+  # original
   O
 }
 
@@ -123,12 +109,15 @@ type List {
   id: ID
   title: String
   listItems: [ListItem!]
+  user: User!
 }
 
 type ListItem {
   id: ID!
   title: String!
   url: String!
+  category: String!
+  externalId: String!
 }
 
 type CreateListMutationResponse implements MutationResponse {
@@ -158,4 +147,72 @@ type DeleteListItemMutationResponse implements MutationResponse {
   message: String!
   list: List
 }
-```
+
+type User {
+  id: String!
+  name: String
+  email: String
+  image: String
+  lists: [List!]
+}
+
+union SearchResult = Artist | Movie | TV
+
+type TV {
+  id: ID
+  title: String
+  creadedBy: [Artist]
+  firstAirDate: String
+  genres: [String]
+  website: String
+  inProduction: Boolean
+  languages: [String]
+  networks: [String]
+  overview: String
+  poster(imgSize: ImgSize!): String
+  backdropImage(imgSize: ImgSize!): String
+  productionCompanies: [String]
+  seasons: [Season]
+  tagline: String
+  rating: Float
+  voteCount: Int
+  related: [TV]
+}
+
+type Season {
+  airDate: String
+  episodes: [Episode]
+  seasonNumber: Int
+  overview: String
+  poster(imgSize: ImgSize!): String
+}
+
+type Episode {
+  name: String
+  airDate: String
+  episodeNumber: Int
+  overview: String
+}
+
+type Artist {
+  id: ID
+  gender: Gender
+  credits: [ArtistCredit]
+  department: String
+  name: String
+  photo(imgSize: ImgSize!): String
+  birthday: String
+  deathday: String
+  bornIn: String
+  biography: String
+}
+
+type ArtistCredit {
+  movie: Movie
+  role: String
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
