@@ -17,6 +17,14 @@ const ListSchema = new Schema({
     url: {
       type: String,
       required: true
+    },
+    externalId: {
+      type: String,
+      required: true
+    },
+    category: {
+      type: String,
+      required: true
     }
   }],
   userId: {
