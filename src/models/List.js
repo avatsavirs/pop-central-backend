@@ -61,10 +61,10 @@ export const resolvers = {
   },
   Mutation: {
     createList: isAuthenticated(async (_, {title}, {user}) => {
-      const list = await List.findOne({title}).lean().exec();
+      const list = await List.findOne({userId: user._id, title}).lean().exec();
       if (list) {
         return {
-          code: "404",
+          code: "400",
           success: false,
           message: "duplicate list name",
         }
