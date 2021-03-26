@@ -17,7 +17,7 @@ export const typeDefs = gql`
     releaseDate: String
     releaseStatus: String
     poster(imgSize: ImgSize!): String
-    backdropImage(imgSize: ImgSize!): String
+    backdropImage: String
     rating: Float
     voteCount: Int
     languages: [String]
@@ -79,10 +79,12 @@ export const resolvers = {
       return movie.status
     },
     poster: (movie, {imgSize}) => {
+      if (!movie.poster_path) return null;
       return `https://image.tmdb.org/t/p/${imgSize}${movie.poster_path}`
     },
-    backdropImage: (movie, {imgSize}) => {
-      return `https://image.tmdb.org/t/p/${imgSize}${movie.backdrop_path}`
+    backdropImage: (movie) => {
+      if (!movie.backdrop_path) return null;
+      return `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${movie.backdrop_path}`
     },
     rating: (movie) => {
       return movie.vote_average;

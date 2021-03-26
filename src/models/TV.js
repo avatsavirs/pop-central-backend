@@ -78,9 +78,11 @@ export const resolvers = {
       return dataSources.tvAPI.getNetworks(tv);
     },
     poster: (tv, {imgSize}) => {
+      if (!tv.poster_path) return null;
       return `https://image.tmdb.org/t/p/${imgSize}${tv.poster_path}`
     },
     backdropImage: (tv, {imgSize}) => {
+      if (!tv.backdrop_path) return null;
       return `https://image.tmdb.org/t/p/${imgSize}${tv.backdrop_path}`
     },
     productionCompanies: (tv, _, {dataSources}) => {

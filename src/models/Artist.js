@@ -57,6 +57,7 @@ export const resolvers = {
       }
     },
     photo: (artist, {imgSize}) => {
+      if (!artist.profile_path) return null;
       return `https://image.tmdb.org/t/p/${imgSize}${artist.profile_path}`
     },
     birthday: (artist, _, {dataSources}) => {
