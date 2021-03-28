@@ -35,6 +35,18 @@ class ArtistAPI extends RESTDataSource {
     }
   }
 
+
+  async getPopular() {
+    try {
+      const popularArtists = await this.get(`popular`);
+      return popularArtists.results;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+
   async getDeathDay(artist) {
     try {
       const deathday = artist.deathday ?? (await this.getArtistById(artist.id)).deathday;

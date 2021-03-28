@@ -4,6 +4,7 @@ export const typeDefs = gql`
 
   extend type Query {
     artist(artistId: ID!): Artist
+    popularArtists: [Artist!]
   }
 
   type Artist {
@@ -17,6 +18,7 @@ export const typeDefs = gql`
     deathday: String
     bornIn: String
     biography: String
+    mediaType: String!
   }
 
   type ArtistCredit {
@@ -36,6 +38,9 @@ export const resolvers = {
   Query: {
     artist: async (_, {artistId}, {dataSources}) => {
       return dataSources.artistAPI.getArtistById(artistId);
+    },
+    popularArtists: async (_, __, {dataSources}) => {
+      return dataSources.artistAPI.getPopular();
     }
   },
   Artist: {
@@ -71,7 +76,8 @@ export const resolvers = {
     },
     biography: (artist, _, {dataSources}) => {
       return dataSources.artistAPI.getBio(artist);
-    }
+    },
+    mediaType: () => "artist"
   },
   ArtistCredit: {
     movie: (artistCredit) => {

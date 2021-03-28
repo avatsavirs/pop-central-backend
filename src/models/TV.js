@@ -19,13 +19,14 @@ export const typeDefs = gql`
     networks: [String]
     overview: String
     poster(imgSize: ImgSize!): String
-    backdropImage(imgSize: ImgSize!): String
+    backdropImage: String
     productionCompanies: [String]
     seasons: [Season]
     tagline: String
     rating: Float
     voteCount: Int
     related: [TV]
+    mediaType: String!
   }
 
   type Season {
@@ -81,9 +82,9 @@ export const resolvers = {
       if (!tv.poster_path) return null;
       return `https://image.tmdb.org/t/p/${imgSize}${tv.poster_path}`
     },
-    backdropImage: (tv, {imgSize}) => {
+    backdropImage: (tv) => {
       if (!tv.backdrop_path) return null;
-      return `https://image.tmdb.org/t/p/${imgSize}${tv.backdrop_path}`
+      return `https://image.tmdb.org/t/p/w1920_and_h800_multi_faces${tv.backdrop_path}`
     },
     productionCompanies: (tv, _, {dataSources}) => {
       return dataSources.tvAPI.getProductionCompanies(tv);
@@ -102,7 +103,8 @@ export const resolvers = {
     },
     related: async (tv, _, {dataSources}) => {
       return dataSources.tvAPI.getRelated(tv);
-    }
+    },
+    mediaType: () => "tv"
   },
   Season: {
     airDate: (season) => {

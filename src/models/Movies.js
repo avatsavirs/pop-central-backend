@@ -1,5 +1,4 @@
 import {gql} from 'apollo-server';
-import {isAuthenticated} from '../auth';
 
 export const typeDefs = gql`
 
@@ -29,6 +28,7 @@ export const typeDefs = gql`
     directors: [Artist]
     productionCompanies: [String]
     related: [Movie]
+    mediaType: String!
   }
 
   type MovieCredit {
@@ -126,7 +126,8 @@ export const resolvers = {
     },
     related: (movie, _, {dataSources}) => {
       return dataSources.movieAPI.getRelatedMovies(movie);
-    }
+    },
+    mediaType: () => "movie"
   },
   MovieCredit: {
     artist: (movieCredit) => {

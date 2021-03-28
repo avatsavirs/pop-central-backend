@@ -132,6 +132,7 @@ class TvAPI extends RESTDataSource {
       return null;
     }
   }
+
   willSendRequest(req) {
     req.params.set('api_key', config.api_key);
     req.params.set('language', 'en-US');
