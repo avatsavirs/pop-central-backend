@@ -47,9 +47,10 @@ class MovieAPI extends RESTDataSource {
   }
 
   async getGenres(movie) {
-    if (movie.genres) return movie.genres;
+    if (movie.genres) return movie.genres.map(genre => genre.name);
     try {
       const {genres} = await this.getMovieById(movie.id);
+      console.log(genres);
       return genres.map(genre => genre.name);
     } catch (error) {
       console.log(error);
