@@ -1,3 +1,4 @@
+import {ApolloError} from 'apollo-server'
 import {gql} from 'apollo-server';
 
 export const typeDefs = gql`
@@ -23,7 +24,7 @@ export const typeDefs = gql`
 
   type ArtistCredit {
     project: Project
-    role: String
+    roles: [String]
   }
 
   enum Gender {
@@ -83,8 +84,9 @@ export const resolvers = {
     project: (artistCredit) => {
       return artistCredit;
     },
-    role: (artistCredit) => {
-      return artistCredit.character || artistCredit.job
+    roles: (artistCredit) => {
+      const roles = artistCredit.jobs || [artistCredit.character];
+      return roles;
     }
   },
   Project: {
@@ -95,7 +97,7 @@ export const resolvers = {
         case 'tv':
           return 'TV'
         default:
-          throw new ApolloError(`Unhandled searchResult type: ${searchResult.media_type}`);
+          throw new ApolloError(`Unhandled project type: ${project.media_type} for ${project.id}`);
       }
     }
   }

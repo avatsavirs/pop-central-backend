@@ -18,8 +18,19 @@ class ArtistAPI extends RESTDataSource {
 
   async getArtistCredits(artist) {
     try {
-      const result = await this.get(`${artist.id}/combined_credits`)
-      return artist.known_for_department === "Acting" ? [...result.cast, ...result.crew] : [...result.crew, ...result.cast]
+      const {cast, crew} = await this.get(`${artist.id}/combined_credits`)
+      const uniqueCrew = {};
+      crew.forEach(c => {
+        if (!uniqueCrew[c.id]) {
+          uniqueCrew[c.id] = c;
+          uniqueCrew[c.id].jobs = [c.job]
+        } else {
+          uniqueCrew[c.id].jobs.push(c.job);
+        }
+      })
+      const uniqueCrewArray = Object.values(uniqueCrew);
+      const credits = artist.known_for_department === "Acting" ? [...cast, ...uniqueCrewArray] : [...uniqueCrewArray, ...cast]
+      return credits;
     } catch (error) {
       console.log(error.message);
       return null;
