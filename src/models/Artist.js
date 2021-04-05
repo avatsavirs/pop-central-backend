@@ -22,7 +22,7 @@ export const typeDefs = gql`
   }
 
   type ArtistCredit {
-    movie: Movie
+    project: Project
     role: String
   }
 
@@ -31,7 +31,7 @@ export const typeDefs = gql`
     FEMALE
   }
 
-
+  union Project = Movie | TV
 `;
 
 export const resolvers = {
@@ -49,7 +49,7 @@ export const resolvers = {
     },
     credits: (artist, _, {dataSources}) => {
       if (artist.credits) return artist.credits;
-      return dataSources.artistAPI.getArtistCredits(artist.id);
+      return dataSources.artistAPI.getArtistCredits(artist);
     },
     gender: (artist) => {
       switch (artist.gender) {
@@ -80,11 +80,23 @@ export const resolvers = {
     mediaType: () => "artist"
   },
   ArtistCredit: {
-    movie: (artistCredit) => {
+    project: (artistCredit) => {
       return artistCredit;
     },
     role: (artistCredit) => {
       return artistCredit.character || artistCredit.job
     }
   },
+  Project: {
+    __resolveType: (project) => {
+      switch (project.media_type) {
+        case 'movie':
+          return 'Movie';
+        case 'tv':
+          return 'TV'
+        default:
+          throw new ApolloError(`Unhandled searchResult type: ${searchResult.media_type}`);
+      }
+    }
+  }
 }

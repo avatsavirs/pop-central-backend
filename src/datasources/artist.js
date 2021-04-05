@@ -16,11 +16,12 @@ class ArtistAPI extends RESTDataSource {
     }
   }
 
-  async getArtistCredits(artistId) {
+  async getArtistCredits(artist) {
     try {
-      const result = await this.get(`${artistId}/combined_credits`)
-      return [...result.cast, ...result.crew]
+      const result = await this.get(`${artist.id}/combined_credits`)
+      return artist.known_for_department === "Acting" ? [...result.cast, ...result.crew] : [...result.crew, ...result.cast]
     } catch (error) {
+      console.log(error.message);
       return null;
     }
   }
