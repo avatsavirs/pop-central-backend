@@ -54,6 +54,16 @@ class TvAPI extends RESTDataSource {
     }
   }
 
+  async getCredits(tvId) {
+    try {
+      const {cast, crew} = await this.get(`${tvId}/credits`)
+      return [...cast, ...crew];
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
   async getLanguages(tv) {
     try {
       const {spoken_languages: languages} = await this.getTvById(tv.id);

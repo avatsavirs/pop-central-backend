@@ -27,6 +27,7 @@ export const typeDefs = gql`
     voteCount: Int
     related: [TV]
     mediaType: String!
+    credits: [TvCredit]
   }
 
   type Season {
@@ -44,6 +45,10 @@ export const typeDefs = gql`
     overview: String
   }
 
+  type TvCredit {
+    artist: Artist
+    role: String
+  }
 `;
 
 export const resolvers = {
@@ -104,6 +109,10 @@ export const resolvers = {
     related: async (tv, _, {dataSources}) => {
       return dataSources.tvAPI.getRelated(tv);
     },
+    credits: async (tv, _, {dataSources}) => {
+      const result = await dataSources.tvAPI.getCredits(tv.id);
+      return result;
+    },
     mediaType: () => "tv"
   },
   Season: {
@@ -123,5 +132,13 @@ export const resolvers = {
   Episode: {
     airDate: (episode) => episode.air_date,
     episodeNumber: (episode) => episode.episode_number
+  },
+  TvCredit: {
+    artist: (movieCredit) => {
+      return movieCredit;
+    },
+    role: (movieCredit) => {
+      return movieCredit.character || movieCredit.job
+    }
   }
 }
