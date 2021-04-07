@@ -10,7 +10,7 @@ export const typeDefs = gql`
   type TV {
     id: ID
     title: String
-    creadedBy: [Artist]
+    creadedBy: [Person]
     firstAirDate: String
     genres: [String]
     website: String
@@ -46,7 +46,7 @@ export const typeDefs = gql`
   }
 
   type TvCredit {
-    artist: Artist
+    person: Person
     role: String
   }
 `;
@@ -134,7 +134,7 @@ export const resolvers = {
     episodeNumber: (episode) => episode.episode_number
   },
   TvCredit: {
-    artist: (movieCredit) => {
+    person: (movieCredit) => {
       return movieCredit;
     },
     role: (movieCredit) => {

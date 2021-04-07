@@ -4,7 +4,7 @@ export const typeDefs = gql`
   extend type Query {
     search(query: String!): [SearchResult]
   }
-  union SearchResult = Artist | Movie | TV
+  union SearchResult = Person | Movie | TV
 `;
 
 export const resolvers = {
@@ -17,7 +17,7 @@ export const resolvers = {
     __resolveType: (searchResult) => {
       switch (searchResult.media_type) {
         case 'person':
-          return "Artist";
+          return "Person";
         case 'movie':
           return 'Movie';
         case 'tv':

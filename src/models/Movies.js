@@ -25,14 +25,14 @@ export const typeDefs = gql`
     runtime: Int
     website: String
     credits: [MovieCredit]
-    directors: [Artist]
+    directors: [Person]
     productionCompanies: [String]
     related: [Movie]
     mediaType: String!
   }
 
   type MovieCredit {
-    artist: Artist
+    person: Person
     role: String
   }
 
@@ -130,7 +130,7 @@ export const resolvers = {
     mediaType: () => "movie"
   },
   MovieCredit: {
-    artist: (movieCredit) => {
+    person: (movieCredit) => {
       return movieCredit;
     },
     role: (movieCredit) => {

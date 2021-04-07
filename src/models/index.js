@@ -4,7 +4,7 @@ import {typeDefs as List, resolvers as ListResolvers} from './List';
 import {typeDefs as User, resolvers as UserResolvers} from './User';
 import {typeDefs as Search, resolvers as SearchResolvers} from './Search';
 import {typeDefs as TV, resolvers as TVResolvers} from './TV';
-import {typeDefs as Artist, resolvers as ArtistResolvers} from './Artist';
+import {typeDefs as Person, resolvers as PersonResolvers} from './Person';
 
 import {merge} from 'lodash'
 
@@ -35,8 +35,8 @@ const resolvers = {
 }
 
 const schema = makeExecutableSchema({
-  typeDefs: [Query, Movie, List, User, Search, TV, Artist],
-  resolvers: merge(resolvers, MovieResolvers, ListResolvers, UserResolvers, SearchResolvers, TVResolvers, ArtistResolvers),
+  typeDefs: [Query, Movie, List, User, Search, TV, Person],
+  resolvers: merge(resolvers, MovieResolvers, ListResolvers, UserResolvers, SearchResolvers, TVResolvers, PersonResolvers),
 });
 
 export default schema;
