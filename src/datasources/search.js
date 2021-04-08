@@ -8,14 +8,23 @@ class SearchAPI extends RESTDataSource {
     this.baseURL = "http://api.themoviedb.org/3/search"
   }
 
-  async searchByName(searchKeyword) {
+  async myGet(endpoint) {
     try {
-      const searchResult = await this.get(`/multi?query=${encodeURIComponent(searchKeyword)}`);
-      return searchResult.results;
+      const data = await this.get(String(endpoint));
+      return data;
     } catch (error) {
-      console.log(error);
-      return null;
+      if (!error.extensions) {
+        throw error;
+      }
+      if (error.extensions.response.status === 404) {
+        error.extensions.code = "RESOURCE_NOT_FOUND";
+      }
+      throw error;
     }
+  }
+
+  async searchAll(query) {
+    return this.myGet(`/multi?query=${encodeURIComponent(query)}`).then(response => response.results);
   }
 
   willSendRequest(req) {

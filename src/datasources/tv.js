@@ -6,141 +6,96 @@ class TvAPI extends RESTDataSource {
     super();
     this.baseURL = "http://api.themoviedb.org/3/tv";
   }
-  async getTvById(tvId) {
+
+  async myGet(endpoint) {
     try {
-      return this.get(`${tvId}`);
-    } catch (e) {
-      console.log(e);
-      return null;
+      const data = await this.get(String(endpoint));
+      return data;
+    } catch (error) {
+      if (!error.extensions) {
+        throw error;
+      }
+      if (error.extensions.response.status === 404) {
+        error.extensions.code = "RESOURCE_NOT_FOUND";
+      }
+      throw error;
     }
+  }
+
+  async getTvById(tvId) {
+    return this.myGet(tvId);
   }
 
   async getCreatedBy(tv) {
-    try {
-      const {created_by: createdBy} = await this.getTvById(tv.id);
-      return createdBy;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    return this.getTvById(tv.id)
+      .then(tvShow => tvShow.created_by);
   }
 
   async getGenres(tv) {
-    try {
-      const {genres} = await this.getTvById(tv.id);
-      return genres.map(genre => genre.name);
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (tv.genres) return tv.genres.map(genre => genre.name);
+    return this.getTvById(tv.id)
+      .then(tvShow => tvShow.genres.map(genre => genre.name));
   }
 
   async getWebsite(tv) {
-    try {
-      const {homepage: website} = await this.getTvById(tv.id);
-      return website;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (tv.homepage) return tv.homepage;
+    return this.getTvById(tv.id)
+      .then(tvShow => tvShow.homepage);
   }
 
   async getIsInProduction(tv) {
-    try {
-      return (await this.getTvById(tv.id)).in_production;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (tv.in_production) return tv.in_production;
+    return this.getTvById(tv.id)
+      .then(tvShow => tvShow.in_production);
   }
 
   async getCredits(tvId) {
-    try {
-      const {cast, crew} = await this.get(`${tvId}/credits`)
-      return [...cast, ...crew];
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    return this.myGet(`${tvId}/credits`)
+      .then(({cast, crew}) => [...cast, ...crew]);
   }
 
   async getLanguages(tv) {
-    try {
-      const {spoken_languages: languages} = await this.getTvById(tv.id);
-      return languages.map(lang => lang.english_name);
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (tv.spoken_languages) return tv.spoken_languages.map(lang => lang.name);
+    return this.getTvById(tv.id)
+      .then(tvShow => tvShow.spoken_languages.map(lang => lang.english_name));
   }
 
   async getNetworks(tv) {
-    try {
-      const {networks} = await this.getTvById(tv.id);
-      return networks.map(network => network.name);
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (tv.networks) return tv.networks.map(network => network.name);
+    return this.getTvById(tv.id)
+      .then(tvShow => tvShow.networks.map(network => network.name));
   }
 
   async getProductionCompanies(tv) {
-    try {
-      const {production_companies: productionCompanies} = await this.getTvById(tv.id);
-      return productionCompanies.map(pc => pc.name);
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (tv.production_companies) return tv.production_companies.map(pc => pc.name);
+    return this.getTvById(tv.id)
+      .then(tvShow => tvShow.production_companies.map(pc => pc.name));
   }
 
   async getTagline(tv) {
-    try {
-      const {tagline} = await this.getTvById(tv.id);
-      return tagline;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (tv.tagline) return tv.tagline;
+    return this.getTvById(tv.id)
+      .then(tvShow => tvShow.tagline);
   }
 
   async getSeasons(tv) {
-    try {
-      const {seasons} = await this.getTvById(tv.id)
-      return seasons;
-    } catch (error) {
-      console.log(error);
-    }
+    if (tv.seasons) return tv.seasons;
+    return this.getTvById(tv.id)
+      .then(tvShow => tvShow.seasons);
   }
 
   async getEpisodes(tvId, seasonNumber) {
-    try {
-      const {episodes} = await this.get(`${tvId}/season/${seasonNumber}`);
-      return episodes;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    return this.myGet(`${tvId}/season/${seasonNumber}`)
+      .then(result => result.episodes);
   }
 
   async getRelated(tv) {
-    try {
-      const relatedTv = await this.get(`${tv.id}/recommendations`);
-      return relatedTv.results;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    return this.myGet(`${tv.id}/recommendations`)
+      .then(response => response.results);
   }
 
   async getPopular() {
-    try {
-      const popularTv = await this.get(`popular`);
-      return popularTv.results;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    return this.myGet('popular').then(response => response.results);
   }
 
   willSendRequest(req) {

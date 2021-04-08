@@ -68,15 +68,10 @@ export const resolvers = {
   },
   Movie: {
     title: (movie) => {
-      return movie.title || movie.name
+      return movie.title
     },
     tagline: async (movie, _, {dataSources}) => {
-      if (movie.tagline) return movie.tagline;
-      const tagline = await dataSources.movieAPI.getTagline(movie);
-      return tagline;
-    },
-    releaseStatus: (movie) => {
-      return movie.status
+      return dataSources.movieAPI.getTagline(movie);
     },
     poster: (movie, {imgSize}) => {
       if (!movie.poster_path) return null;

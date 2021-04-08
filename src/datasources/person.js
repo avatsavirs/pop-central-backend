@@ -8,85 +8,65 @@ class PersonAPI extends RESTDataSource {
     this.baseURL = "http://api.themoviedb.org/3/person";
   }
 
-  async getPersonById(personId) {
+  async myGet(endpoint) {
     try {
-      return this.get(`${personId}`)
+      const data = await this.get(String(endpoint));
+      return data;
     } catch (error) {
-      return null;
+      if (!error.extensions) {
+        throw error;
+      }
+      if (error.extensions.response.status === 404) {
+        error.extensions.code = "RESOURCE_NOT_FOUND";
+      }
+      throw error;
     }
+  }
+
+  async getPersonById(personId) {
+    return this.myGet(personId);
   }
 
   async getPersonCredits(person) {
-    try {
-      const {cast, crew} = await this.get(`${person.id}/combined_credits`)
-      const uniqueCrew = {};
-      crew.forEach(c => {
-        if (!uniqueCrew[c.id]) {
-          uniqueCrew[c.id] = c;
-          uniqueCrew[c.id].jobs = [c.job]
-        } else {
-          uniqueCrew[c.id].jobs.push(c.job);
-        }
+    return this.myGet(`${person.id}/combined_credits`)
+      .then(({cast, crew}) => {
+        const uniqueCrew = {};
+        crew.forEach(c => {
+          if (!uniqueCrew[c.id]) {
+            uniqueCrew[c.id] = c;
+            uniqueCrew[c.id].jobs = [c.job]
+          } else {
+            uniqueCrew[c.id].jobs.push(c.job);
+          }
+        })
+        const uniqueCrewArray = Object.values(uniqueCrew);
+        return person.known_for_department === "Acting" ? [...cast, ...uniqueCrewArray] : [...uniqueCrewArray, ...cast]
       })
-      const uniqueCrewArray = Object.values(uniqueCrew);
-      const credits = person.known_for_department === "Acting" ? [...cast, ...uniqueCrewArray] : [...uniqueCrewArray, ...cast]
-      return credits;
-    } catch (error) {
-      console.log(error.message);
-      return null;
-    }
   }
 
   async getBirthday(person) {
-    try {
-      const birthday = person.birthday ?? (await this.getPersonById(person.id)).birthday;
-      return birthday;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (person.birthday) return person.birthday;
+    return this.getPersonById(person.id).then(person => person.birthday);
   }
-
-
-  async getPopular() {
-    try {
-      const popularPersons = await this.get(`popular`);
-      return popularPersons.results;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
-  }
-
 
   async getDeathDay(person) {
-    try {
-      const deathday = person.deathday ?? (await this.getPersonById(person.id)).deathday;
-      return deathday;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (person.deathday) return person.deathday;
+    return this.getPersonById(person.id)
+      .then(person => person.deathday);
+  }
+
+  async getPopular() {
+    return this.myGet('popular').then(response => response.results);
   }
 
   async getBornIn(person) {
-    try {
-      const bornIn = person.place_of_birth ?? (await this.getPersonById(person.id)).place_of_birth;
-      return bornIn;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (person.place_of_birth) return person.place_of_birth;
+    return this.getPersonById(person.id).then(person => person.place_of_birth);
   }
 
   async getBio(person) {
-    try {
-      const biography = person.biography ?? (await this.getPersonById(person.id)).biography;
-      return biography;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (person.biography) return person.biography;
+    return this.getPersonById(person.id).then(person => person.biography);
   }
 
   willSendRequest(req) {

@@ -1,4 +1,5 @@
 import {RESTDataSource} from 'apollo-datasource-rest'
+import {ApolloError} from 'apollo-server';
 import config from '../config/index'
 
 class MovieAPI extends RESTDataSource {
@@ -7,146 +8,102 @@ class MovieAPI extends RESTDataSource {
     this.baseURL = "http://api.themoviedb.org/3/movie"
   }
 
-  async getMovieById(movieId) {
+  async myGet(endpoint) {
     try {
-      return this.get(`${movieId}`);
-    } catch (e) {
-      console.log(e);
-      return null;
+      const data = await this.get(String(endpoint));
+      return data;
+    } catch (error) {
+      if (!error.extensions) {
+        throw error;
+      }
+      if (error.extensions.response.status === 404) {
+        error.extensions.code = "RESOURCE_NOT_FOUND";
+      }
+      throw error;
     }
+  }
+
+  async getMovieById(movieId) {
+    return this.myGet(movieId);
   }
 
   async getCredits(movieId) {
-    try {
-      const {cast, crew} = await this.get(`${movieId}/credits`)
-      return [...cast, ...crew];
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    const {cast, crew} = await this.myGet(`${movieId}/credits`)
+    return [...cast, ...crew];
   }
 
   async getDirectors(movie) {
-    try {
-      const credits = await this.getCredits(movie.id);
-      return credits.filter(crewMember => crewMember.job === "Director");
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    const credits = await this.getCredits(movie.id);
+    return credits.filter(crewMember => crewMember.job === "Director");
   }
 
   async getTagline(movie) {
-    try {
-      movie = await this.getMovieById(movie.id);
-      return movie.tagline;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (movie.tagline) return movie.tagline;
+    return this.getMovieById(movie.id).then(movie => movie.tagline);
   }
 
   async getGenres(movie) {
     if (movie.genres) return movie.genres.map(genre => genre.name);
-    try {
-      const {genres} = await this.getMovieById(movie.id);
-      console.log(genres);
-      return genres.map(genre => genre.name);
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    return this.getMovieById(movie.id)
+      .then(movie => {
+        return movie.genres.map(genre => genre.name);
+      })
   }
 
   async getReleaseStatus(movie) {
-    if (movie.release_status) return movie.release_status;
-    try {
-      const {status} = await this.getMovieById(movie.id);
-      return status;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (movie.status) return movie.status;
+    return this.getMovieById(movie.id)
+      .then(movie => movie.status);
   }
 
   async getLanguages(movie) {
-    try {
-      const languages = movie.spoken_languages ?? (await this.getMovieById(movie.id)).spoken_languages;
-      return languages.map(lang => lang.english_name);
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (movie.spoken_languages) return movie.spoken_languages.map(lang => lang.english_name);
+    return this.getMovieById(movie.id)
+      .then(movie => {
+        return movie.spoken_languages.map(lang => lang.english_name);
+      })
   }
 
   async getBudget(movie) {
-    try {
-      const budget = movie.budget ?? (await this.getMovieById(movie.id)).budget;
-      return budget;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (movie.budget) return movie.budget;
+    return this.getMovieById(movie.id)
+      .then(movie => movie.budget);
   }
 
   async getRevenue(movie) {
-    try {
-      const revenue = movie.revenue ?? (await this.getMovieById(movie.id)).revenue;
-      return revenue;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (movie.revenue) return movie.revenue;
+    return this.getMovieById(movie.id)
+      .then(movie => movie.revenue);
   }
 
   async getRunTime(movie) {
-    try {
-      const runtime = movie.runtime ?? (await this.getMovieById(movie.id)).runtime;
-      return runtime;
-    } catch (error) {
-      console.log(runtime);
-      return null;
-    }
+    if (movie.runtime) return movie.runtime;
+    return this.getMovieById(movie.id)
+      .then(movie => movie.runtime);
   }
 
   async getWebsite(movie) {
-    try {
-      const website = movie.homepage ?? (await this.getMovieById(movie.id)).homepage;
-      return website;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (movie.homepage) return movie.homepage;
+    return this.getMovieById(movie.id)
+      .then(movie => movie.homepage);
   }
 
   async getProductionCompanies(movie) {
-    try {
-      const productionCompanies = movie.production_companies ?? (await this.getMovieById(movie.id)).production_companies;
-      return productionCompanies.map(pc => pc.name);
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    if (movie.production_companies) return movie.production_companies.map(pc => pc.name);
+    return this.getMovieById(movie.id)
+      .then(movie => {
+        return movie.production_companies.map(pc => pc.name);
+      })
   }
 
   async getRelatedMovies(movie) {
-    try {
-      const relatedMovies = await this.get(`${movie.id}/recommendations`);
-      return relatedMovies.results;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    return this.myGet(`${movie.id}/recommendations`)
+      .then(response => response.results);
   }
 
   async getPopular() {
-    try {
-      const popularMovie = await this.get(`popular`);
-      return popularMovie.results;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
+    return this.myGet("popular")
+      .then(response => response.results);
   }
 
   willSendRequest(req) {
