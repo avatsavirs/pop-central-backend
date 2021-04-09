@@ -1,29 +1,13 @@
-import {RESTDataSource} from 'apollo-datasource-rest'
-import config from '../config/index'
+import RESTDataSource from './restDataSource'
 
 class TvAPI extends RESTDataSource {
   constructor() {
     super();
-    this.baseURL = "http://api.themoviedb.org/3/tv";
-  }
-
-  async myGet(endpoint) {
-    try {
-      const data = await this.get(String(endpoint));
-      return data;
-    } catch (error) {
-      if (!error.extensions) {
-        throw error;
-      }
-      if (error.extensions.response.status === 404) {
-        error.extensions.code = "RESOURCE_NOT_FOUND";
-      }
-      throw error;
-    }
+    this.baseUrl = "http://api.themoviedb.org/3/tv";
   }
 
   async getTvById(tvId) {
-    return this.myGet(tvId);
+    return this.get(tvId);
   }
 
   async getCreatedBy(tv) {
@@ -50,7 +34,7 @@ class TvAPI extends RESTDataSource {
   }
 
   async getCredits(tvId) {
-    return this.myGet(`${tvId}/credits`)
+    return this.get(`${tvId}/credits`)
       .then(({cast, crew}) => [...cast, ...crew]);
   }
 
@@ -85,22 +69,17 @@ class TvAPI extends RESTDataSource {
   }
 
   async getEpisodes(tvId, seasonNumber) {
-    return this.myGet(`${tvId}/season/${seasonNumber}`)
+    return this.get(`${tvId}/season/${seasonNumber}`)
       .then(result => result.episodes);
   }
 
   async getRelated(tv) {
-    return this.myGet(`${tv.id}/recommendations`)
+    return this.get(`${tv.id}/recommendations`)
       .then(response => response.results);
   }
 
   async getPopular() {
-    return this.myGet('popular').then(response => response.results);
-  }
-
-  willSendRequest(req) {
-    req.params.set('api_key', config.api_key);
-    req.params.set('language', 'en-US');
+    return this.get('popular').then(response => response.results);
   }
 }
 

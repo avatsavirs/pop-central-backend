@@ -1,34 +1,17 @@
-import {RESTDataSource} from 'apollo-datasource-rest'
-import {ApolloError} from 'apollo-server';
-import config from '../config/index'
+import RESTDataSource from './restDataSource';
 
 class MovieAPI extends RESTDataSource {
   constructor() {
     super();
-    this.baseURL = "http://api.themoviedb.org/3/movie"
-  }
-
-  async myGet(endpoint) {
-    try {
-      const data = await this.get(String(endpoint));
-      return data;
-    } catch (error) {
-      if (!error.extensions) {
-        throw error;
-      }
-      if (error.extensions.response.status === 404) {
-        error.extensions.code = "RESOURCE_NOT_FOUND";
-      }
-      throw error;
-    }
+    this.baseUrl = "http://api.themoviedb.org/3/movie";
   }
 
   async getMovieById(movieId) {
-    return this.myGet(movieId);
+    return this.get(movieId);
   }
 
   async getCredits(movieId) {
-    const {cast, crew} = await this.myGet(`${movieId}/credits`)
+    const {cast, crew} = await this.get(`${movieId}/credits`)
     return [...cast, ...crew];
   }
 
@@ -97,20 +80,14 @@ class MovieAPI extends RESTDataSource {
   }
 
   async getRelatedMovies(movie) {
-    return this.myGet(`${movie.id}/recommendations`)
+    return this.get(`${movie.id}/recommendations`)
       .then(response => response.results);
   }
 
   async getPopular() {
-    return this.myGet("popular")
+    return this.get("popular")
       .then(response => response.results);
   }
-
-  willSendRequest(req) {
-    req.params.set('api_key', config.api_key);
-    req.params.set('language', 'en-US');
-  }
-
 }
 
 export default MovieAPI;

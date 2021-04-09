@@ -11,8 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "apollo-datasource-rest": "^0.10.0",
     "apollo-server": "^2.21.1",
+    "axios": "^0.21.1",
     "dotenv": "^8.2.0",
     "graphql": "^15.5.0",
     "jsonwebtoken": "^8.5.1",

@@ -1,34 +1,17 @@
-
-import {RESTDataSource} from 'apollo-datasource-rest'
-import config from '../config/index'
+import RESTDataSource from './restDataSource'
 
 class PersonAPI extends RESTDataSource {
   constructor() {
     super();
-    this.baseURL = "http://api.themoviedb.org/3/person";
-  }
-
-  async myGet(endpoint) {
-    try {
-      const data = await this.get(String(endpoint));
-      return data;
-    } catch (error) {
-      if (!error.extensions) {
-        throw error;
-      }
-      if (error.extensions.response.status === 404) {
-        error.extensions.code = "RESOURCE_NOT_FOUND";
-      }
-      throw error;
-    }
+    this.baseUrl = "http://api.themoviedb.org/3/person";
   }
 
   async getPersonById(personId) {
-    return this.myGet(personId);
+    return this.get(personId);
   }
 
   async getPersonCredits(person) {
-    return this.myGet(`${person.id}/combined_credits`)
+    return this.get(`${person.id}/combined_credits`)
       .then(({cast, crew}) => {
         const uniqueCrew = {};
         crew.forEach(c => {
@@ -56,7 +39,7 @@ class PersonAPI extends RESTDataSource {
   }
 
   async getPopular() {
-    return this.myGet('popular').then(response => response.results);
+    return this.get('popular').then(response => response.results);
   }
 
   async getBornIn(person) {
@@ -67,11 +50,6 @@ class PersonAPI extends RESTDataSource {
   async getBio(person) {
     if (person.biography) return person.biography;
     return this.getPersonById(person.id).then(person => person.biography);
-  }
-
-  willSendRequest(req) {
-    req.params.set('api_key', config.api_key);
-    req.params.set('language', 'en-US');
   }
 
 }
