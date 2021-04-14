@@ -1,6 +1,5 @@
-import {ApolloError, AuthenticationError, gql} from 'apollo-server'
+import {gql} from 'apollo-server'
 import {isAuthenticated} from '../auth';
-import List from '../database_models/List'
 import User from '../database_models/User';
 
 export const typeDefs = gql`
@@ -10,8 +9,15 @@ export const typeDefs = gql`
   extend type Mutation {
     createList(title: String!): CreateListMutationResponse!
     deleteList(listId: ID!): DeleteListMutationResponse!
-    addListItem(listId: ID!, title: String!, url: String!, externalId: String!, category: String!): AddListItemMutationResponse!
+    addListItem(input: AddListItemInput!): AddListItemMutationResponse!
     deleteListItem(listId: ID!, listItemId: ID!): DeleteListItemMutationResponse!
+  }
+  input AddListItemInput {
+    listId: ID!
+    title: String!
+    url: String!
+    externalId: String!
+    mediaType: String!
   }
   type List {
     id: ID
@@ -55,13 +61,12 @@ export const typeDefs = gql`
 export const resolvers = {
   Query: {
     lists: isAuthenticated(async (_, __, {user}) => {
-      const allList = await List.find({userId: user._id}).populate("user");
-      return allList;
+      return user.lists;
     })
   },
   Mutation: {
     createList: isAuthenticated(async (_, {title}, {user}) => {
-      const list = await List.findOne({userId: user._id, title}).lean().exec();
+      const list = user.lists.find(list => list.title === title);
       if (list) {
         return {
           code: "400",
@@ -69,10 +74,12 @@ export const resolvers = {
           message: "duplicate list name",
         }
       }
-      const newList = await List.create({
-        title,
-        userId: user
-      });
+      const updatedUser = await User.findByIdAndUpdate(user._id, {
+        $push: {
+          lists: {title}
+        }
+      }, {new: true})
+      const newList = updatedUser.lists[updatedUser.lists.length - 1];
       return {
         code: "201",
         success: true,
@@ -81,31 +88,46 @@ export const resolvers = {
       };
     }),
     deleteList: isAuthenticated(async (_, {listId}, {user}) => {
-      const list = await List.findById(listId);
-      if (!list) throw new ApolloError("List Not Found")
-      if (list.userId.toString() !== user._id.toString()) {
-        throw new AuthenticationError(`This list doesn't belong to you`);
+      const list = user.lists.find(list => list._id.toString() === listId);
+      if (!list) {
+        return {
+          code: '404',
+          success: false,
+          message: 'list not found'
+        }
       }
-      await List.findByIdAndDelete(listId);
+      await User.findByIdAndUpdate(user._id, {
+        $pull: {
+          lists: {
+            _id: list._id
+          }
+        }
+      });
       return {
         code: "202",
         success: true,
         message: "list deleted successfully"
       }
     }),
-    addListItem: isAuthenticated(async (_, {listId, title, url, category, externalId}, {user}) => {
-      const list = await List.findById(listId);
-      if (!list) throw new ApolloError("List Not Found");
-      if (list.userId.toString() !== user._id.toString()) {
-        throw new AuthenticationError(`This list doesn't belong to you`);
+    addListItem: isAuthenticated(async (_, {input}, {user}) => {
+      const {listId, title, url, category, externalId} = input;
+      const list = user.lists.find(list => list._id.toString() === listId);
+      if (!list) {
+        return {
+          code: '404',
+          success: false,
+          message: 'list not found'
+        }
       }
-      const updatedList = await List.findByIdAndUpdate(listId, {
+      const updatedUser = await User.findOneAndUpdate({
+        _id: user._id,
+        'lists._id': listId
+      }, {
         $push: {
-          listItems: {
-            title, url, category, externalId
-          }
+          'lists.$.listItems': {title, url, category, externalId}
         }
       }, {new: true});
+      const updatedList = updatedUser.lists.find(list => list._id.toString() === listId);
       const newListItem = updatedList.listItems[updatedList.listItems.length - 1];
       return {
         code: "201",
@@ -116,27 +138,31 @@ export const resolvers = {
       }
     }),
     deleteListItem: isAuthenticated(async (_, {listId, listItemId}, {user}) => {
-      const list = await List.findById(listId);
-      if (!list) {
-        throw new ApolloError("List Not Found")
-      }
-      if (list.userId.toString() !== user._id.toString()) {
-        throw new AuthenticationError(`This list doesn't belong to you`);
-      }
-      const updatedList = await List.findByIdAndUpdate(listId, {
-        $pull: {
-          listItems: {
-            _id: listItemId
-          }
-        }
-      }, {new: true});
+      const list = user.lists.find(list => list._id.toString() === listId);
       if (!list) {
         return {
-          code: "404",
+          code: '404',
           success: false,
-          message: "No list with the given listId"
+          message: 'list not found'
         }
       }
+      const listItem = list.listItems.find(listItem => listItem._id.toString() === listItemId);
+      if (!listItem) {
+        return {
+          code: '404',
+          success: false,
+          message: 'listItem not found'
+        }
+      }
+      const updatedUser = await User.findOneAndUpdate({
+        _id: user._id,
+        'lists._id': listId
+      }, {
+        $pull: {
+          'lists.$.listItems': {_id: listItemId}
+        }
+      }, {new: true});
+      const updatedList = updatedUser.lists.find(list => list._id.toString() === listId);
       return {
         code: "202",
         success: true,
@@ -146,9 +172,12 @@ export const resolvers = {
     })
   },
   List: {
-    user: async (list) => {
-      const user = await User.findById(list.userId).lean().exec();
+    id: (list) => list._id,
+    user: async (_, __, {user}) => {
       return user;
     }
+  },
+  ListItem: {
+    id: (list) => list._id
   }
 }
