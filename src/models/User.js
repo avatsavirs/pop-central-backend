@@ -3,6 +3,7 @@ import User from '../database_models/User';
 import jwt from 'jsonwebtoken';
 import config from '../config';
 import {isAuthenticated} from '../auth';
+import Token from '../database_models/Token';
 
 export const typeDefs = gql`
   extend type Query {
@@ -10,6 +11,14 @@ export const typeDefs = gql`
   }
   extend type Mutation {
     signIn(user: SigninInput!): SigninResponse!
+    refreshTokens(accessToken: String!, refreshToken: String!): RefreshTokensResponse!
+  }
+  type RefreshTokensResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    accessToken: String
+    refreshToken: String
   }
   type SigninResponse implements MutationResponse{
     code: String!
@@ -40,7 +49,6 @@ export const typeDefs = gql`
 export const resolvers = {
   Query: {
     me: isAuthenticated((_, __, {user}) => {
-      console.debug({user})
       return user;
     })
   },
@@ -60,6 +68,8 @@ export const resolvers = {
       }, 'secret2', {
         expiresIn: '7d'
       });
+      const expirationTime = jwt.decode(accessToken).exp;
+      await Token.create({accessToken, refreshToken, user: dbUser._id, expirationTime});
       return {
         code: '201',
         message: 'signIn successful',
@@ -67,6 +77,45 @@ export const resolvers = {
         user: dbUser,
         accessToken,
         refreshToken
+      }
+    },
+    refreshTokens: async (_, {accessToken, refreshToken}) => {
+      try {
+        const dbToken = await Token.findOne({accessToken});
+        if (!dbToken) throw new Error('invalid access token');
+        if (!dbToken.isExpired) throw new Error('acess token has not expired yet');
+        if (dbToken.refreshToken !== refreshToken) throw new Error('invalid refresh token');
+        const decodedRefreshToken = jwt.verify(refreshToken, 'secret2');
+        const userId = decodedRefreshToken.sub;
+        if (dbToken.user.toString() !== userId) throw new Error('invalid refresh token');
+        const user = await User.findById(userId).lean().exec();
+        if (user) {
+          const newAccessToken = jwt.sign({sub: userId}, config.jwtSecret, {expiresIn: '1m'});
+          const newRefreshToken = jwt.sign({sub: userId}, 'secret2', {expiresIn: '7d'});
+          dbToken.accessToken = newAccessToken;
+          dbToken.refreshToken = newRefreshToken;
+          dbToken.expirationTime = jwt.decode(newAccessToken).exp;
+          dbToken.save();
+          return {
+            code: '200',
+            success: true,
+            message: 'new tokens generated successfully',
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken
+          }
+        } else {
+          return {
+            code: '404',
+            success: false,
+            message: 'user not found'
+          }
+        }
+      } catch (error) {
+        return {
+          code: '500',
+          success: false,
+          message: error.message
+        };
       }
     }
   },
