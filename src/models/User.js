@@ -17,6 +17,7 @@ export const typeDefs = gql`
     message: String!
     user: User!
     accessToken: String!
+    refreshToken: String!
   }
   input SigninInput {
     email: String!
@@ -52,14 +53,20 @@ export const resolvers = {
       const accessToken = jwt.sign({
         sub: dbUser.id
       }, config.jwtSecret, {
-        expiresIn: '1h'
-      })
+        expiresIn: '1m'
+      });
+      const refreshToken = jwt.sign({
+        sub: dbUser.id,
+      }, 'secret2', {
+        expiresIn: '7d'
+      });
       return {
         code: '201',
         message: 'signIn successful',
         success: true,
         user: dbUser,
-        accessToken
+        accessToken,
+        refreshToken
       }
     }
   },
