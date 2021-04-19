@@ -61,12 +61,12 @@ export const resolvers = {
       const accessToken = jwt.sign({
         sub: dbUser.id
       }, config.jwtSecret, {
-        expiresIn: '1m'
+        expiresIn: config.jwtAccessExpTime
       });
       const refreshToken = jwt.sign({
         sub: dbUser.id,
-      }, 'secret2', {
-        expiresIn: '7d'
+      }, config.jwtSecretRef, {
+        expiresIn: config.jwtRefExpTime
       });
       const expirationTime = jwt.decode(accessToken).exp;
       await Token.create({accessToken, refreshToken, user: dbUser._id, expirationTime});
@@ -82,20 +82,24 @@ export const resolvers = {
     refreshTokens: async (_, {accessToken, refreshToken}) => {
       try {
         const dbToken = await Token.findOne({accessToken});
-        if (!dbToken) throw new Error('invalid access token');
+        if (!dbToken) {
+          console.debug({reqAccessToken: accessToken})
+          throw new Error('invalid access token');
+        }
         if (!dbToken.isExpired) throw new Error('acess token has not expired yet');
         if (dbToken.refreshToken !== refreshToken) throw new Error('invalid refresh token');
-        const decodedRefreshToken = jwt.verify(refreshToken, 'secret2');
+        const decodedRefreshToken = jwt.verify(refreshToken, config.jwtSecretRef);
         const userId = decodedRefreshToken.sub;
         if (dbToken.user.toString() !== userId) throw new Error('invalid refresh token');
         const user = await User.findById(userId).lean().exec();
         if (user) {
-          const newAccessToken = jwt.sign({sub: userId}, config.jwtSecret, {expiresIn: '1m'});
-          const newRefreshToken = jwt.sign({sub: userId}, 'secret2', {expiresIn: '7d'});
+          const newAccessToken = jwt.sign({sub: userId}, config.jwtSecret, {expiresIn: config.jwtAccessExpTime});
+          const newRefreshToken = jwt.sign({sub: userId}, config.jwtSecretRef, {expiresIn: config.jwtRefExpTime});
           dbToken.accessToken = newAccessToken;
           dbToken.refreshToken = newRefreshToken;
           dbToken.expirationTime = jwt.decode(newAccessToken).exp;
-          dbToken.save();
+          await dbToken.save();
+          console.debug({newAccessToken})
           return {
             code: '200',
             success: true,
@@ -104,6 +108,7 @@ export const resolvers = {
             refreshToken: newRefreshToken
           }
         } else {
+          console.error('User not found')
           return {
             code: '404',
             success: false,
@@ -111,6 +116,7 @@ export const resolvers = {
           }
         }
       } catch (error) {
+        console.error(error.message);
         return {
           code: '500',
           success: false,
